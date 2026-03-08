@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voucher Generator PRO+</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          Inter,
+          Segoe UI,
+          Arial;
+        background: #f3f4f6;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: auto;
+        background: white;
+        padding: 24px;
+        border-radius: 14px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      }
+
+      h1 {
+        margin-bottom: 20px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      @media (min-width: 768px) {
+        .form-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      label {
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        margin-top: 5px;
+      }
+
+      .buttons {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        padding: 10px 18px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .generate {
+        background: #2563eb;
+        color: white;
+      }
+      .print {
+        background: #111;
+        color: white;
+      }
+
+      #preview {
+        margin-top: 40px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      @media (min-width: 600px) {
+        #preview {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (min-width: 1024px) {
+        #preview {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      .voucher {
+        background: white;
+        border-radius: 16px;
+        border: 2px solid #111;
+        position: relative;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        padding: 10px;
+      }
+
+      .voucher.landscape {
+        height: 190px;
+      }
+      .voucher.portrait {
+        height: 260px;
+      }
+
+      .draggable {
+        position: absolute;
+        cursor: move;
+      }
+
+      .title {
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .subtitle {
+        font-size: 12px;
+        color: #555;
+      }
+
+      .price {
+        font-size: 20px;
+        font-weight: 800;
+      }
+
+      .oldprice {
+        font-size: 13px;
+        text-decoration: line-through;
+        color: #888;
+      }
+
+      .code {
+        background: #111;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+      }
+
+      .logo {
+        height: 34px;
+      }
+
+      .qr {
+        width: 105px;
+        height: 105px;
+      }
+
+      .small {
+        font-size: 11px;
+        color: #666;
+      }
+
+      .redeemed {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 22px;
+      }
+
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        #printArea,
+        #printArea * {
+          visibility: visible;
+        }
+        #printArea {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+        #preview {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Voucher Generator PRO+</h1>
+
+      <div class="form-grid">
+        <div>
+          <label>Nama penerbit</label>
+          <input id="issuer" value="Diamant Digital" />
+        </div>
+
+        <div>
+          <label>Judul voucher</label>
+          <input id="title" value="Belajar Membuat Landingpage" />
+        </div>
+
+        <div>
+          <label>Sub Judul</label>
+          <input id="subtitle" value="Bersertifikat" />
+        </div>
+
+        <div>
+          <label>Harga</label>
+          <input id="price" value="Rp 25.000" />
+        </div>
+
+        <div>
+          <label>Harga Coret</label>
+          <input id="oldprice" placeholder="Rp 99.000" />
+        </div>
+
+        <div>
+          <label>Jumlah halaman</label>
+          <input id="pages" type="number" value="1" />
+        </div>
+
+        <div>
+          <label>Voucher per halaman</label>
+          <select id="perPage">
+            <option value="4">4</option>
+            <option value="8">8</option>
+            <option value="10">10</option>
+            <option value="12">12</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Orientasi voucher</label>
+          <select id="orientation">
+            <option value="landscape">Landscape</option>
+            <option value="portrait">Portrait</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Prefix kode</label>
+          <input id="prefix" value="DMT" />
+        </div>
+
+        <div>
+          <label>Upload Logo</label>
+          <input id="logoFile" type="file" accept="image/*" />
+        </div>
+
+        <div>
+          <label>No WhatsApp untuk QR</label>
+          <input id="wa" placeholder="628123456789" />
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button class="generate" onclick="generateVoucher()">
+          Generate Voucher
+        </button>
+        <button class="print" onclick="window.print()">Print A4</button>
+      </div>
+
+      <div id="printArea">
+        <div id="preview"></div>
+      </div>
+    </div>
+
+    <script>
+      let voucherDB = JSON.parse(localStorage.getItem('voucherDB') || '{}');
+
+      function saveDB() {
+        localStorage.setItem('voucherDB', JSON.stringify(voucherDB));
+      }
+
+      const usedCodes = new Set();
+
+      function randomCode(prefix) {
+        let code;
+
+        do {
+          code =
+            prefix +
+            '-' +
+            Math.random().toString(36).substring(2, 8).toUpperCase();
+        } while (usedCodes.has(code));
+
+        usedCodes.add(code);
+
+        if (!voucherDB[code]) {
+          voucherDB[code] = { redeemed: false };
+        }
+
+        return code;
+      }
+
+      function enableDrag(el) {
+        interact(el).draggable({
+          listeners: {
+            move(event) {
+              const target = event.target;
+              const x =
+                (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+              const y =
+                (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+              target.style.transform = `translate(${x}px,${y}px)`;
+
+              target.setAttribute('data-x', x);
+              target.setAttribute('data-y', y);
+            },
+          },
+        });
+      }
+
+      function redeemVoucher(code) {
+        if (!voucherDB[code]) {
+          alert('Voucher tidak valid');
+          return;
+        }
+
+        if (voucherDB[code].redeemed) {
+          alert('Voucher sudah digunakan');
+          return;
+        }
+
+        voucherDB[code].redeemed = true;
+        saveDB();
+        alert('Voucher berhasil diredeem');
+      }
+
+      function generateVoucher() {
+        usedCodes.clear();
+
+        const issuer = document.getElementById('issuer').value;
+        const title = document.getElementById('title').value;
+        const subtitle = document.getElementById('subtitle').value;
+        const price = document.getElementById('price').value;
+        const oldprice = document.getElementById('oldprice').value;
+        const pages = parseInt(document.getElementById('pages').value);
+        const perPage = parseInt(document.getElementById('perPage').value);
+        const orientation = document.getElementById('orientation').value;
+        const prefix = document.getElementById('prefix').value;
+        const wa = document.getElementById('wa').value;
+
+        const file = document.getElementById('logoFile').files[0];
+        let logo = '';
+        if (file) {
+          logo = URL.createObjectURL(file);
+        }
+
+        const total = pages * perPage;
+
+        const preview = document.getElementById('preview');
+        preview.innerHTML = '';
+
+        for (let i = 0; i < total; i++) {
+          const code = randomCode(prefix);
+
+          const voucher = document.createElement('div');
+          voucher.className = `voucher ${orientation}`;
+
+          voucher.innerHTML = `
+
+${logo ? `<img src="${logo}" class="draggable logo" style="top:10px;left:10px">` : ''}
+
+<div class="draggable title" style="top:10px;left:60px">${title}</div>
+
+<div class="draggable subtitle" style="top:32px;left:60px">${subtitle}</div>
+
+${oldprice ? `<div class="draggable oldprice" style="top:60px;left:10px">${oldprice}</div>` : ''}
+
+<div class="draggable price" style="top:80px;left:10px">${price}</div>
+
+<div class="draggable code" style="top:120px;left:10px">${code}</div>
+
+<div class="draggable small" style="bottom:10px;left:10px">${issuer}</div>
+
+<div class="draggable small" style="top:150px;right:10px">Scan untuk redeem</div>
+
+<div class="draggable qr" id="qr${i}" style="top:40px;right:10px"></div>
+
+`;
+
+          preview.appendChild(voucher);
+
+          const validateURL = `${location.href.split('?')[0]}?redeem=${code}`;
+
+          new QRCode(document.getElementById('qr' + i), {
+            text: validateURL,
+            width: 105,
+            height: 105,
+          });
+
+          voucher.querySelectorAll('.draggable').forEach(enableDrag);
+        }
+
+        saveDB();
+      }
+
+      const params = new URLSearchParams(location.search);
+
+      if (params.get('redeem')) {
+        const code = params.get('redeem');
+        redeemVoucher(code);
+      }
+    </script>
+  </body>
+</html>
