@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generator Voucher WhatsApp</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f3f4f6;
+        color: #222;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .judul-halaman {
+        text-align: center;
+        font-size: 30px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #0f172a;
+      }
+
+      .subjudul-halaman {
+        text-align: center;
+        font-size: 15px;
+        color: #475569;
+        margin-bottom: 25px;
+      }
+
+      .form-box {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+      }
+
+      .grid-form {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+      }
+
+      .full {
+        grid-column: 1 / -1;
+      }
+
+      label {
+        display: block;
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 6px;
+        color: #1e293b;
+      }
+
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid #cbd5e1;
+        font-size: 14px;
+        outline: none;
+        font-family: inherit;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .btn-wrap {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+      }
+
+      button {
+        border: none;
+        border-radius: 12px;
+        padding: 12px 18px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .btn-generate {
+        background: #2563eb;
+        color: white;
+      }
+
+      .btn-print {
+        background: #16a34a;
+        color: white;
+      }
+
+      .btn-reset {
+        background: #e2e8f0;
+        color: #0f172a;
+      }
+
+      /* HALAMAN PREVIEW */
+      .page {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto 20px auto;
+        background: white;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        padding: 7mm;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 63mm;
+        gap: 4mm;
+        page-break-after: always;
+      }
+
+      .voucher,
+      .voucher-empty {
+        height: 63mm;
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .voucher {
+        border: 2px dashed #334155;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        background: linear-gradient(135deg, #ffffff, #f8fafc);
+      }
+
+      .voucher-empty {
+        border: 1px dashed transparent;
+        background: transparent;
+      }
+
+      .voucher::before {
+        content: '';
+        position: absolute;
+        top: -25px;
+        right: -25px;
+        width: 90px;
+        height: 90px;
+        background: rgba(37, 99, 235, 0.08);
+        border-radius: 50%;
+      }
+
+      .voucher-top,
+      .voucher-middle,
+      .voucher-footer {
+        position: relative;
+        z-index: 2;
+      }
+
+      .voucher-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #0f172a;
+        margin-bottom: 5px;
+        line-height: 1.3;
+      }
+
+      .voucher-subtitle {
+        font-size: 11px;
+        color: #475569;
+        line-height: 1.5;
+        margin-bottom: 8px;
+      }
+
+      .voucher-middle {
+        display: grid;
+        grid-template-columns: 1fr 85px;
+        gap: 10px;
+        align-items: center;
+        flex: 1;
+      }
+
+      .voucher-info {
+        font-size: 11px;
+        line-height: 1.6;
+        color: #1e293b;
+        display: -webkit-box;
+        -webkit-line-clamp: 5;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .kode {
+        margin-top: 8px;
+        display: inline-block;
+        background: #0f172a;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        width: fit-content;
+      }
+
+      .qr-box {
+        text-align: center;
+      }
+
+      .qr {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 4px auto;
+        background: white;
+        padding: 4px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .scan-text {
+        font-size: 9px;
+        color: #334155;
+        font-weight: bold;
+      }
+
+      .voucher-footer {
+        margin-top: 8px;
+        font-size: 9px;
+        color: #64748b;
+        border-top: 1px dashed #cbd5e1;
+        padding-top: 6px;
+      }
+
+      .empty-state {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        text-align: center;
+        color: #64748b;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 7mm;
+      }
+
+      /* PRINT */
+      @media print {
+        html,
+        body {
+          width: 210mm;
+          height: auto;
+          background: #fff;
+        }
+
+        body {
+          margin: 0;
+          padding: 0;
+        }
+
+        .form-box,
+        .judul-halaman,
+        .subjudul-halaman,
+        .empty-state {
+          display: none !important;
+        }
+
+        .container {
+          max-width: none;
+          width: 210mm;
+          margin: 0;
+          padding: 0;
+        }
+
+        .page {
+          width: 196mm;
+          min-height: auto;
+          margin: 0;
+          padding: 0;
+          box-shadow: none;
+          background: #fff;
+          gap: 4mm;
+          grid-template-columns: repeat(2, 1fr);
+          grid-auto-rows: 63mm;
+          break-after: page;
+          page-break-after: always;
+        }
+
+        .voucher,
+        .voucher-empty {
+          height: 63mm;
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+
+        .voucher {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+
+      /* RESPONSIVE PREVIEW */
+      @media (max-width: 900px) {
+        .grid-form {
+          grid-template-columns: 1fr;
+        }
+
+        .page {
+          width: 100%;
+          min-height: auto;
+          padding: 12px;
+          grid-template-columns: repeat(2, 1fr);
+          grid-auto-rows: 220px;
+          gap: 10px;
+        }
+
+        .voucher,
+        .voucher-empty {
+          height: 220px;
+        }
+
+        .voucher {
+          padding: 10px;
+        }
+
+        .voucher-title {
+          font-size: 13px;
+        }
+
+        .voucher-subtitle {
+          font-size: 9px;
+        }
+
+        .voucher-middle {
+          grid-template-columns: 1fr 65px;
+        }
+
+        .voucher-info {
+          font-size: 9px;
+          line-height: 1.45;
+        }
+
+        .qr {
+          width: 60px;
+          height: 60px;
+        }
+
+        .scan-text,
+        .voucher-footer {
+          font-size: 8px;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .page {
+          grid-template-columns: repeat(2, 1fr);
+          grid-auto-rows: 190px;
+          gap: 8px;
+          padding: 8px;
+        }
+
+        .voucher,
+        .voucher-empty {
+          height: 190px;
+        }
+
+        .voucher {
+          padding: 8px;
+        }
+
+        .voucher-title {
+          font-size: 11px;
+        }
+
+        .voucher-subtitle,
+        .voucher-info {
+          font-size: 7px;
+        }
+
+        .voucher-middle {
+          grid-template-columns: 1fr 52px;
+          gap: 6px;
+        }
+
+        .kode {
+          font-size: 8px;
+          padding: 4px 7px;
+        }
+
+        .qr {
+          width: 48px;
+          height: 48px;
+          padding: 2px;
+        }
+
+        .scan-text,
+        .voucher-footer {
+          font-size: 6.5px;
+        }
+
+        .btn-wrap button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="judul-halaman">Generator Voucher WhatsApp</div>
+      <div class="subjudul-halaman">
+        Buat voucher dengan QR Code yang langsung mengarah ke grup WhatsApp
+      </div>
+
+      <div class="form-box">
+        <div class="grid-form">
+          <div class="full">
+            <label>Link Group WhatsApp</label>
+            <input
+              type="text"
+              id="linkGroup"
+              value="https://chat.whatsapp.com/CONTOH-LINK-GROUP-ANDA"
+            />
+          </div>
+
+          <div>
+            <label>Judul Voucher</label>
+            <input
+              type="text"
+              id="judulVoucher"
+              value="Voucher Belajar Digital Marketing"
+            />
+          </div>
+
+          <div>
+            <label>Sub Judul Voucher</label>
+            <input
+              type="text"
+              id="subjudulVoucher"
+              value="Belajar setiap hari Rabu selama 40 kali pertemuan"
+            />
+          </div>
+
+          <div class="full">
+            <label>Deskripsi Singkat</label>
+            <textarea id="deskripsiVoucher">
+Scan QR Code untuk langsung masuk ke grup WhatsApp belajar digital marketing. Program ini cocok untuk pemula, pebisnis, dan siapa saja yang ingin belajar secara rutin.</textarea
+            >
+          </div>
+
+          <div>
+            <label>Prefix Kode Voucher</label>
+            <input type="text" id="prefixKode" value="DMKT" />
+          </div>
+
+          <div>
+            <label>Jumlah Voucher</label>
+            <input
+              type="number"
+              id="jumlahVoucher"
+              value="8"
+              min="1"
+              max="500"
+            />
+          </div>
+
+          <div>
+            <label>Isi Voucher per Halaman A4</label>
+            <select id="perHalaman">
+              <option value="8" selected>8 Voucher</option>
+              <option value="6">6 Voucher</option>
+              <option value="4">4 Voucher</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Teks Footer Voucher</label>
+            <input
+              type="text"
+              id="footerVoucher"
+              value="Scan QR untuk masuk grup WhatsApp"
+            />
+          </div>
+        </div>
+
+        <div class="btn-wrap">
+          <button class="btn-generate" onclick="generateVoucher()">
+            Generate Voucher
+          </button>
+          <button class="btn-print" onclick="window.print()">Print A4</button>
+          <button class="btn-reset" onclick="resetForm()">Reset</button>
+        </div>
+      </div>
+
+      <div id="hasilVoucher">
+        <div class="empty-state">
+          Silakan isi form di atas lalu klik <strong>Generate Voucher</strong>.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function createPage() {
+        const page = document.createElement('div');
+        page.className = 'page';
+        return page;
+      }
+
+      function createVoucherHTML(
+        judulVoucher,
+        subjudulVoucher,
+        deskripsiVoucher,
+        kodeVoucher,
+        footerVoucher,
+        qrId,
+      ) {
+        const voucher = document.createElement('div');
+        voucher.className = 'voucher';
+        voucher.innerHTML = `
+        <div class="voucher-top">
+          <div class="voucher-title">${escapeHtml(judulVoucher)}</div>
+          <div class="voucher-subtitle">${escapeHtml(subjudulVoucher)}</div>
+        </div>
+
+        <div class="voucher-middle">
+          <div>
+            <div class="voucher-info">${escapeHtml(deskripsiVoucher)}</div>
+            <div class="kode">${escapeHtml(kodeVoucher)}</div>
+          </div>
+          <div class="qr-box">
+            <div class="qr" id="${qrId}"></div>
+            <div class="scan-text">SCAN QR</div>
+          </div>
+        </div>
+
+        <div class="voucher-footer">${escapeHtml(footerVoucher)}</div>
+      `;
+        return voucher;
+      }
+
+      function createEmptySlot() {
+        const empty = document.createElement('div');
+        empty.className = 'voucher-empty';
+        return empty;
+      }
+
+      function generateVoucher() {
+        const linkGroup = document.getElementById('linkGroup').value.trim();
+        const judulVoucher = document
+          .getElementById('judulVoucher')
+          .value.trim();
+        const subjudulVoucher = document
+          .getElementById('subjudulVoucher')
+          .value.trim();
+        const deskripsiVoucher = document
+          .getElementById('deskripsiVoucher')
+          .value.trim();
+        const prefixKode =
+          document.getElementById('prefixKode').value.trim() || 'VCR';
+        const jumlahVoucher = parseInt(
+          document.getElementById('jumlahVoucher').value,
+          10,
+        );
+        const perHalaman = parseInt(
+          document.getElementById('perHalaman').value,
+          10,
+        );
+        const footerVoucher = document
+          .getElementById('footerVoucher')
+          .value.trim();
+
+        if (!linkGroup) {
+          alert('Link grup WhatsApp wajib diisi.');
+          return;
+        }
+
+        if (!jumlahVoucher || jumlahVoucher < 1) {
+          alert('Jumlah voucher minimal 1.');
+          return;
+        }
+
+        const hasilVoucher = document.getElementById('hasilVoucher');
+        hasilVoucher.innerHTML = '';
+
+        let currentPage = null;
+        let countInPage = 0;
+        let qrTargets = [];
+
+        for (let i = 1; i <= jumlahVoucher; i++) {
+          if (countInPage === 0) {
+            currentPage = createPage();
+            hasilVoucher.appendChild(currentPage);
+          }
+
+          const kodeVoucher = prefixKode + '-' + String(i).padStart(4, '0');
+          const qrId =
+            'qr-' +
+            i +
+            '-' +
+            Date.now() +
+            '-' +
+            Math.random().toString(36).slice(2, 6);
+
+          const voucher = createVoucherHTML(
+            judulVoucher,
+            subjudulVoucher,
+            deskripsiVoucher,
+            kodeVoucher,
+            footerVoucher,
+            qrId,
+          );
+
+          currentPage.appendChild(voucher);
+          qrTargets.push(qrId);
+          countInPage++;
+
+          if (countInPage === perHalaman || i === jumlahVoucher) {
+            const emptySlots = 8 - countInPage;
+            for (let s = 0; s < emptySlots; s++) {
+              currentPage.appendChild(createEmptySlot());
+            }
+            countInPage = 0;
+          }
+        }
+
+        qrTargets.forEach((qrId) => {
+          new QRCode(document.getElementById(qrId), {
+            text: linkGroup,
+            width: 72,
+            height: 72,
+          });
+        });
+      }
+
+      function resetForm() {
+        document.getElementById('linkGroup').value =
+          'https://chat.whatsapp.com/CONTOH-LINK-GROUP-ANDA';
+        document.getElementById('judulVoucher').value =
+          'Voucher Belajar Digital Marketing';
+        document.getElementById('subjudulVoucher').value =
+          'Belajar setiap hari Rabu selama 40 kali pertemuan';
+        document.getElementById('deskripsiVoucher').value =
+          'Scan QR Code untuk langsung masuk ke grup WhatsApp belajar digital marketing. Program ini cocok untuk pemula, pebisnis, dan siapa saja yang ingin belajar secara rutin.';
+        document.getElementById('prefixKode').value = 'DMKT';
+        document.getElementById('jumlahVoucher').value = '8';
+        document.getElementById('perHalaman').value = '8';
+        document.getElementById('footerVoucher').value =
+          'Scan QR untuk masuk grup WhatsApp';
+
+        document.getElementById('hasilVoucher').innerHTML = `
+        <div class="empty-state">
+          Silakan isi form di atas lalu klik <strong>Generate Voucher</strong>.
+        </div>
+      `;
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.innerText = text;
+        return div.innerHTML;
+      }
+    </script>
+  </body>
+</html>
